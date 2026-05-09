@@ -1,0 +1,27 @@
+{
+  "name": "mi-cv-web",
+  "version": "1.0.0",
+  "description": "Mi curriculum web",
+  "main": "index.js",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/racase/mi-cv-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/racase/mi-cv-web/issues"
+  },
+  "homepage": "https://github.com/racase/mi-cv-web#readme",
+  "dependencies": {
+    "astro": "^6.3.1"
+  }
+}
