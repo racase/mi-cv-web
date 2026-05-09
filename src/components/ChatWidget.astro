@@ -1,0 +1,225 @@
+---
+---
+
+<div id="chat-widget" class="chat-widget">
+  <button id="chat-toggle" class="chat-toggle">
+    💬 Habla con mi Gemelo Digital
+  </button>
+  
+  <div id="chat-box" class="chat-box hidden">
+    <div class="chat-header">
+      <h4>🤖 Gemelo Digital de Rafa</h4>
+      <button id="chat-close" class="chat-close">✖</button>
+    </div>
+    
+    <div id="chat-messages" class="chat-messages">
+      <div class="message system">
+        ¡Hola! Soy el asistente virtual de Rafa. Puedes preguntarme sobre su experiencia, estudios o stack tecnológico. ¿En qué puedo ayudarte?
+      </div>
+    </div>
+    
+    <form id="chat-form" class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="Pregunta algo sobre Rafa..." required />
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  .chat-toggle {
+    background: linear-gradient(90deg, var(--accent-color), #8ba8b1);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .chat-toggle:hover {
+    transform: scale(1.05);
+  }
+  
+  .chat-box {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    width: 350px;
+    height: 450px;
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  .chat-box.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+  }
+  
+  .chat-header {
+    background: rgba(108, 142, 174, 0.1);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  
+  .chat-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+  }
+  
+  .chat-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+  
+  .chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .message {
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 80%;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  
+  .message.system {
+    background: rgba(108, 142, 174, 0.15);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+  }
+  
+  .message.user {
+    background: var(--accent-color);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+  }
+  
+  .chat-input-area {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.5);
+  }
+  
+  .chat-input-area input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    outline: none;
+    background: white;
+    color: var(--text-primary);
+  }
+  
+  .chat-input-area button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0 15px;
+    margin-left: 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+  const toggleBtn = document.getElementById('chat-toggle');
+  const closeBtn = document.getElementById('chat-close');
+  const chatBox = document.getElementById('chat-box');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
+  const chatMessages = document.getElementById('chat-messages');
+
+  toggleBtn.addEventListener('click', () => {
+    chatBox.classList.toggle('hidden');
+    if (!chatBox.classList.contains('hidden')) {
+      chatInput.focus();
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    chatBox.classList.add('hidden');
+  });
+
+  function addMessage(text, sender) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message', sender);
+    msgDiv.textContent = text;
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Add user message
+    addMessage(message, 'user');
+    chatInput.value = '';
+    
+    // Add loading message
+    const loadingId = 'loading-' + Date.now();
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = loadingId;
+    loadingDiv.classList.add('message', 'system');
+    loadingDiv.textContent = 'Escribiendo...';
+    chatMessages.appendChild(loadingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+
+      document.getElementById(loadingId).remove();
+
+      if (response.ok) {
+        const data = await response.json();
+        addMessage(data.reply, 'system');
+      } else {
+        addMessage('Lo siento, hubo un error de conexión con mi cerebro artificial.', 'system');
+      }
+    } catch (err) {
+      document.getElementById(loadingId).remove();
+      addMessage('Error de red. Por favor intenta de nuevo.', 'system');
+    }
+  });
+</script>

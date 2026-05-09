@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/racase/mi-cv-web#readme",
   "dependencies": {
+    "@astrojs/vercel": "^10.0.6",
     "astro": "^6.3.1"
   }
 }
