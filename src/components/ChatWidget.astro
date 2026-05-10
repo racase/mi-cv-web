@@ -119,6 +119,7 @@
     color: var(--text-primary);
     align-self: flex-start;
     border-bottom-left-radius: 2px;
+    white-space: pre-wrap;
   }
   
   .message.user {
@@ -127,12 +128,48 @@
     align-self: flex-end;
     border-bottom-right-radius: 2px;
   }
+
+  .message.loading {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  .message.loading span {
+    animation: blink 1.4s infinite both;
+  }
+
+  .message.loading span:nth-child(2) { animation-delay: 0.2s; }
+  .message.loading span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+
+  /* Formatting inside messages */
+  .message.system strong {
+    color: var(--accent-color);
+    font-weight: 700;
+  }
+
+  .message.system ul {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  .message.system li {
+    margin-bottom: 4px;
+  }
   
   .chat-input-area {
     display: flex;
     padding: 15px;
     border-top: 1px solid var(--glass-border);
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.8);
   }
   
   .chat-input-area input {
@@ -176,10 +213,25 @@
     chatBox.classList.add('hidden');
   });
 
+  function formatMessage(text) {
+    // Basic markdown-like formatting
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^\*\s(.*)/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
+  }
+
   function addMessage(text, sender) {
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('message', sender);
-    msgDiv.textContent = text;
+    
+    if (sender === 'system') {
+      msgDiv.innerHTML = formatMessage(text);
+    } else {
+      msgDiv.textContent = text;
+    }
+    
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
@@ -197,8 +249,8 @@
     const loadingId = 'loading-' + Date.now();
     const loadingDiv = document.createElement('div');
     loadingDiv.id = loadingId;
-    loadingDiv.classList.add('message', 'system');
-    loadingDiv.textContent = 'Escribiendo...';
+    loadingDiv.classList.add('message', 'system', 'loading');
+    loadingDiv.innerHTML = 'Escribiendo<span>.</span><span>.</span><span>.</span>';
     chatMessages.appendChild(loadingDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
@@ -209,7 +261,8 @@
         body: JSON.stringify({ message })
       });
 
-      document.getElementById(loadingId).remove();
+      const loadingElement = document.getElementById(loadingId);
+      if (loadingElement) loadingElement.remove();
 
       if (response.ok) {
         const data = await response.json();
@@ -218,7 +271,8 @@
         addMessage('Lo siento, hubo un error de conexión con mi cerebro artificial.', 'system');
       }
     } catch (err) {
-      document.getElementById(loadingId).remove();
+      const loadingElement = document.getElementById(loadingId);
+      if (loadingElement) loadingElement.remove();
       addMessage('Error de red. Por favor intenta de nuevo.', 'system');
     }
   });
